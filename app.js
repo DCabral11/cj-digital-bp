@@ -126,8 +126,8 @@ async function handlePinSubmit(ev) {
 
   const enteredPin = DOM.pinInput.value.trim();
   const enteredPoints = Number(DOM.pointsInput.value);
-  if (!Number.isFinite(enteredPoints) || enteredPoints < 0) {
-    DOM.pinFeedback.textContent = 'Introduz um valor de pontos válido (>= 0).';
+  if (![0, 100].includes(enteredPoints)) {
+    DOM.pinFeedback.textContent = 'A pontuação deve ser 0 ou 100.';
     return;
   }
 
@@ -195,6 +195,8 @@ function bindEvents() {
   DOM.logoutTeam.addEventListener('click', logout);
   DOM.pinForm.addEventListener('submit', handlePinSubmit);
   DOM.cancelPin?.addEventListener('click', () => {
+    DOM.pinInput.value = '';
+    DOM.pointsInput.value = '100';
     DOM.pinFeedback.textContent = '';
     DOM.pinDialog.close();
   });
