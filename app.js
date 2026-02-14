@@ -27,8 +27,13 @@ const gameIdCollator = new Intl.Collator('pt', { numeric: true, sensitivity: 'ba
 const compareGameIds = (left, right) => gameIdCollator.compare(String(left ?? ''), String(right ?? ''));
 
 function switchView(view) {
-  [DOM.loginView, DOM.teamView, DOM.adminView].forEach((v) => v.classList.add('hidden'));
-  view.classList.remove('hidden');
+  [DOM.loginView, DOM.teamView, DOM.adminView].forEach((v) => {
+        v.classList.remove('visible');
+        v.classList.remove('hidden');
+    });
+
+    view.classList.remove('hidden');
+    view.classList.add('visible');
 }
 
 function computeTeamScore(teamId) {
@@ -232,3 +237,4 @@ async function bootstrap() {
 bootstrap().catch((err) => {
   DOM.loginError.textContent = `Erro ao iniciar: ${err.message}`;
 });
+
