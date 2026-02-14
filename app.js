@@ -18,6 +18,7 @@ const DOM = {
   pinForm: document.getElementById('pin-form'),
   pinInput: document.getElementById('pin-input'),
   pointsInput: document.getElementById('points-input'),
+  cancelPin: document.getElementById('cancel-pin'),
   pinFeedback: document.getElementById('pin-feedback'),
   dialogTitle: document.getElementById('dialog-title')
 };
@@ -193,6 +194,10 @@ function bindEvents() {
   DOM.exportAdminXlsx?.addEventListener('click', exportAdminDashboardToExcel);
   DOM.logoutTeam.addEventListener('click', logout);
   DOM.pinForm.addEventListener('submit', handlePinSubmit);
+  DOM.cancelPin?.addEventListener('click', () => {
+    DOM.pinFeedback.textContent = '';
+    DOM.pinDialog.close();
+  });
 }
 
 async function createFirebaseApi() {
