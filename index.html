@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cartão de Jogo Digital</title>
+    <title>Jogo de Cidade | Peddy-Paper</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -13,7 +13,8 @@
     <div class="bg-gradient"></div>
     <main class="app-shell">
       <section id="login-view" class="card visible" aria-hidden="false">
-        <h1>Jogo de Cidade - Dia de BP Alverca 2026</h1>
+        <h1>Jogo de Cidade</h1>
+        <p class="subtitle">Plataforma Peddy-Paper com ranking em tempo real</p>
         <form id="login-form" class="form-grid">
           <label>
             Username
@@ -41,7 +42,7 @@
         <div id="games-grid" class="games-grid"></div>
       </section>
 
-      <section id="admin-view" class="card hidden" hidden aria-hidden="false">
+      <section id="admin-view" class="card hidden" hidden aria-hidden="true">
         <header class="view-header">
           <h2>Painel de Administrador</h2>
           <button id="logout-admin" class="ghost">Terminar sessão</button>
@@ -76,11 +77,11 @@
         <h3 id="dialog-title">Validar posto</h3>
         <label>
           PIN do posto
-          <input id="pin-input" type="password" required maxlength="6" autocomplete="off" />
+          <input id="pin-input" type="password" required maxlength="8" autocomplete="off" />
         </label>
         <label>
-            Pontos do jogo (0 ou 100)
-            <input id="points-input" type="number" min="0" max="100" step="100" required />
+          Pontos obtidos
+          <input id="points-input" type="number" required min="0" max="1000" step="1" value="100" />
         </label>
         <menu>
           <button value="cancel" class="ghost">Cancelar</button>
@@ -90,9 +91,7 @@
       </form>
     </dialog>
 
-    <script src="firebase-config.js"></script>
-    <script type="module" src="app.js"></script>
+    <script src="firebase-config.js?v=5"></script>
+    <script type="module" src="app.js?v=5"></script>
   </body>
 </html>
-
-
