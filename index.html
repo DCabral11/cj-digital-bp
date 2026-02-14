@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="pt-PT">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cartão de Jogo Digital</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-gradient"></div>
+    <main class="app-shell">
+      <section id="login-view" class="card visible">
+        <h1>Jogo de Cidade - Dia de BP Alverca 2026</h1>
+        <form id="login-form" class="form-grid">
+          <label>
+            Username
+            <input id="username" type="text" required placeholder="Ex: equipa01" />
+          </label>
+          <label>
+            Password
+            <input id="password" type="password" required placeholder="••••••••" />
+          </label>
+          <button type="submit">Entrar</button>
+        </form>
+        <p id="login-error" class="error"></p>
+      </section>
+
+      <section id="team-view" class="card hidden">
+        <header class="view-header">
+          <div>
+            <h2 id="team-name">Equipa</h2>
+            <p id="team-score" class="score-pill">Pontuação: 0</p>
+          </div>
+          <button id="logout-team" class="ghost">Terminar sessão</button>
+        </header>
+        <h3>Postos do jogo</h3>
+        <p class="subtitle">Verde = por visitar • Vermelho = visitado</p>
+        <div id="games-grid" class="games-grid"></div>
+      </section>
+
+      <section id="admin-view" class="card hidden">
+        <header class="view-header">
+          <h2>Painel de Administrador</h2>
+          <button id="logout-admin" class="ghost">Terminar sessão</button>
+        </header>
+
+        <div class="panel-grid">
+          <article>
+            <h3>Ranking em tempo real</h3>
+            <table>
+              <thead>
+                <tr><th>#</th><th>Equipa</th><th>Pontos</th></tr>
+              </thead>
+              <tbody id="ranking-body"></tbody>
+            </table>
+          </article>
+
+          <article>
+            <h3>Histórico de inserções</h3>
+            <table>
+              <thead>
+                <tr><th>Data/Hora</th><th>Equipa</th><th>Jogo</th><th>Pontos</th></tr>
+              </thead>
+              <tbody id="history-body"></tbody>
+            </table>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="pin-dialog">
+      <form id="pin-form" method="dialog" class="form-grid">
+        <h3 id="dialog-title">Validar posto</h3>
+        <label>
+          PIN do posto
+          <input id="pin-input" type="text" required maxlength="8" />
+        </label>
+        <label>
+            Pontos do jogo (0 ou 100)
+            <input id="points-input" type="number" min="0" max="100" step="100" required />
+        </label>
+        <menu>
+          <button value="cancel" class="ghost">Cancelar</button>
+          <button value="default">Registar</button>
+        </menu>
+        <p id="pin-feedback" class="error"></p>
+      </form>
+    </dialog>
+
+    <script src="firebase-config.js"></script>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
