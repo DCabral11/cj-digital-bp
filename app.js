@@ -23,12 +23,47 @@ const DOM = {
   dialogTitle: document.getElementById('dialog-title')
 };
 
-const state = { teams: [], games: [], submissions: {}, session: null, selectedGame: null, admin: null, ready: false, bootstrapError: null, eventsBound: false };
+const state = { teams: [], games: [], submissions: [], session: null, selectedGame: null, admin: null, ready: false, bootstrapError: null, eventsBound: false };
 let firebaseApi;
 const SESSION_KEY = 'peddy_session';
 
 const gameIdCollator = new Intl.Collator('pt', { numeric: true, sensitivity: 'base' });
 const compareGameIds = (left, right) => gameIdCollator.compare(String(left ?? ''), String(right ?? ''));
+
+
+function normalizeSubmissions(data) {
+  if (!data) return [];
+
+  // Novo formato: /submissions/{submissionId}: { timestamp, posto, equipa, pontos }
+  const maybeFlat = Object.entries(data).map(([id, row]) => ({ id, ...row }));
+  const flatValid = maybeFlat.filter((r) => r && typeof r === 'object' && ('equipa' in r || 'posto' in r || 'pontos' in r));
+  if (flatValid.length) {
+    return flatValid.map((r) => ({
+      id: String(r.id),
+      timestamp: String(r.timestamp || ''),
+      posto: String(r.posto || r.gameId || ''),
+      equipa: String(r.equipa || r.teamId || ''),
+      pontos: Number(r.pontos ?? r.points ?? 0)
+    }));
+  }
+
+  // Compatibilidade legado: /submissions/{teamId}/{gameId}: { timestamp, points }
+  const rows = [];
+  for (const [equipa, games] of Object.entries(data)) {
+    if (!games || typeof games !== 'object') continue;
+    for (const [posto, payload] of Object.entries(games)) {
+      rows.push({
+        id: `${equipa}_${posto}`,
+        timestamp: String(payload?.timestamp || ''),
+        posto: String(posto),
+        equipa: String(equipa),
+        pontos: Number(payload?.points ?? payload?.pontos ?? 0)
+      });
+    }
+  }
+  return rows;
+}
+
 
 function switchView(view) {
   [DOM.loginView, DOM.teamView, DOM.adminView].forEach((v) => {
@@ -41,7 +76,9 @@ function switchView(view) {
 }
 
 function computeTeamScore(teamId) {
-  return Object.values(state.submissions[teamId] || {}).reduce((sum, item) => sum + Number(item.points || 0), 0);
+  return state.submissions
+    .filter((row) => String(row.equipa) === String(teamId))
+    .reduce((sum, row) => sum + Number(row.pontos || 0), 0);
 }
 
 function rankingRows() {
@@ -51,26 +88,30 @@ function rankingRows() {
 }
 
 function historyRows() {
-  const rows = [];
-  for (const team of state.teams) {
-    for (const [gameId, rec] of Object.entries(state.submissions[team.id] || {})) {
-      rows.push({ timestamp: rec.timestamp, teamName: team.teamName, gameId, points: rec.points });
-    }
-  }
-  return rows.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  return [...state.submissions]
+    .map((row) => {
+      const team = state.teams.find((t) => String(t.id) === String(row.equipa));
+      return {
+        timestamp: row.timestamp,
+        teamName: team?.teamName || row.equipa,
+        gameId: row.posto,
+        points: Number(row.pontos || 0)
+      };
+    })
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 }
 
 function renderTeam() {
   const team = state.session?.team;
   if (!team) return;
-  const done = state.submissions[team.id] || {};
+  const donePosts = new Set(state.submissions.filter((row) => String(row.equipa) === String(team.id)).map((row) => String(row.posto)));
 
   DOM.teamName.textContent = team.teamName;
   DOM.teamScore.textContent = `Pontuação: ${computeTeamScore(team.id)} pts`;
   DOM.gamesGrid.innerHTML = '';
 
   state.games.forEach((game) => {
-    const visited = !!done[game.gameId];
+    const visited = donePosts.has(String(game.gameId));
     const tile = document.createElement('button');
     tile.className = `game-tile ${visited ? 'done' : 'open'}`;
     tile.textContent = game.label;
@@ -264,7 +305,7 @@ async function createFirebaseApi() {
         .sort((a, b) => compareGameIds(a.postoId, b.postoId));
     },
     subscribeSubmissions(cb) {
-      return onValue(ref(db, 'submissions'), (snap) => cb(snap.exists() ? snap.val() : {}));
+      return onValue(ref(db, 'submissions'), (snap) => cb(normalizeSubmissions(snap.exists() ? snap.val() : {})));
     },
     async validatePinAndInsertSubmission(teamId, game, enteredPin, enteredPoints) {
       const pinPath = `postos/${game.postoId}/pin`;
@@ -280,11 +321,23 @@ async function createFirebaseApi() {
       }
 
       const points = Number(enteredPoints);
-      const payload = { timestamp: new Date().toISOString(), points, gameId: game.gameId };
 
-      const target = ref(db, `submissions/${teamId}/${game.gameId}`);
+      const submissionsSnap = await get(ref(db, 'submissions'));
+      const existingRows = normalizeSubmissions(submissionsSnap.exists() ? submissionsSnap.val() : {});
+      const duplicated = existingRows.some((row) => String(row.equipa) === String(teamId) && String(row.posto) === String(game.gameId));
+      if (duplicated) throw new Error('Jogo já registado para esta equipa.');
+
+      const submissionId = `S${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      const payload = {
+        timestamp: new Date().toISOString(),
+        posto: String(game.gameId),
+        equipa: String(teamId),
+        pontos: points
+      };
+
+      const target = ref(db, `submissions/${submissionId}`);
       const tx = await runTransaction(target, (current) => current || payload);
-      if (!tx.committed) throw new Error('Jogo já registado para esta equipa.');
+      if (!tx.committed) throw new Error('Não foi possível gravar a submissão.');
 
       return points;
     }
