@@ -24,7 +24,7 @@ body { margin: 0; background: var(--bg); color: var(--text); min-height: 100vh; 
   border: 1px solid rgba(148, 163, 184, .2); border-radius: 16px;
   padding: 1.25rem; box-shadow: 0 10px 28px rgba(0,0,0,.25);
 }
-.hidden { display: none; }
+.hidden { display: none !important; }
 .visible { display: block; }
 h1,h2,h3 { margin: .3rem 0 .8rem; }
 .subtitle { color: var(--muted); margin-top: 0; }
@@ -64,4 +64,5 @@ menu { display: flex; justify-content: end; gap: .55rem; margin: .2rem 0 0; padd
 @media (max-width: 700px) {
   .app-shell { margin: 1rem auto; }
   .view-header { flex-direction: column; align-items: start; }
+
 }
