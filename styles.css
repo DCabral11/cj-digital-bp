@@ -64,5 +64,4 @@ menu { display: flex; justify-content: end; gap: .55rem; margin: .2rem 0 0; padd
 @media (max-width: 700px) {
   .app-shell { margin: 1rem auto; }
   .view-header { flex-direction: column; align-items: start; }
-
 }
