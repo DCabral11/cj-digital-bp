@@ -30,7 +30,7 @@ h1,h2,h3 { margin: .3rem 0 .8rem; }
 .subtitle { color: var(--muted); margin-top: 0; }
 .form-grid { display: grid; gap: .9rem; max-width: 480px; }
 label { display: grid; gap: .4rem; color: var(--muted); font-size: .95rem; }
-input {
+input, select {
   background: rgba(30,41,59,.8); color: var(--text); border: 1px solid rgba(148,163,184,.28);
   border-radius: 10px; padding: .72rem;
 }
@@ -65,3 +65,26 @@ menu { display: flex; justify-content: end; gap: .55rem; margin: .2rem 0 0; padd
   .app-shell { margin: 1rem auto; }
   .view-header { flex-direction: column; align-items: start; }
 }
+
+
+#pin-dialog {
+  border: 1px solid rgba(148, 163, 184, .24);
+  border-radius: 16px;
+  background: var(--card);
+  color: var(--text);
+  width: min(520px, 92vw);
+  box-shadow: 0 20px 45px rgba(0,0,0,.45);
+}
+
+#pin-dialog::backdrop {
+  background: rgba(2, 6, 23, .7);
+  backdrop-filter: blur(2px);
+}
+
+#pin-dialog .cancel-btn {
+  background: rgba(239, 68, 68, .15);
+  border: 1px solid rgba(239, 68, 68, .5);
+  color: #fecaca;
+}
+
+#pin-dialog menu button { min-width: 120px; }
