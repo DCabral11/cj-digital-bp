@@ -23,6 +23,9 @@ const DOM = {
 const state = { teams: [], games: [], submissions: {}, session: null, selectedGame: null, admin: null };
 let firebaseApi;
 
+const gameIdCollator = new Intl.Collator('pt', { numeric: true, sensitivity: 'base' });
+const compareGameIds = (left, right) => gameIdCollator.compare(String(left ?? ''), String(right ?? ''));
+
 function switchView(view) {
   [DOM.loginView, DOM.teamView, DOM.adminView].forEach((v) => v.classList.add('hidden'));
   view.classList.remove('hidden');
@@ -149,21 +152,44 @@ async function createFirebaseApi() {
 
   const api = {
     async getAdmin() {
-      const snap = await get(ref(db, 'admin'));
-      if (!snap.exists()) throw new Error('Nó /admin não existe na base de dados.');
-      return snap.val();
+      const [adminSnap, equipasSnap] = await Promise.all([get(ref(db, 'admin')), get(ref(db, 'equipas'))]);
+      if (adminSnap.exists()) {
+        return adminSnap.val();
+      }
+
+      if (equipasSnap.exists()) {
+        const adminEntry = Object.values(equipasSnap.val()).find((row) => String(row?.role || '').toLowerCase() === 'admin');
+        if (adminEntry) {
+          return { username: adminEntry.username, password: adminEntry.password };
+        }
+      }
+
+      throw new Error('Nó /admin não existe e não foi encontrado utilizador admin em /equipas.');
     },
     async getTeams() {
-      const snap = await get(ref(db, 'teams'));
-      if (!snap.exists()) return [];
-      return Object.entries(snap.val()).map(([id, v]) => ({ id, ...v }));
-    },
-    async getGames() {
-      const snap = await get(ref(db, 'games'));
+      const snap = await get(ref(db, 'equipas'));
       if (!snap.exists()) return [];
       return Object.entries(snap.val())
-        .map(([gameId, v]) => ({ gameId, ...v }))
-        .sort((a, b) => String(a.gameId).localeCompare(String(b.gameId), 'pt', { numeric: true }));
+        .map(([id, v]) => ({ id: String(id), ...v }))
+        .filter((team) => String(team.role || 'team').toLowerCase() === 'team')
+        .map((team) => ({
+          id: team.id,
+          username: team.username,
+          password: team.password,
+          teamName: team.team_name || team.teamName || team.username
+        }));
+    },
+    async getGames() {
+      const snap = await get(ref(db, 'postos'));
+      if (!snap.exists()) return [];
+      return Object.entries(snap.val())
+        .map(([postoId, v]) => ({
+          postoId: String(postoId),
+          gameId: String(v.game_label || `P${postoId}`),
+          label: String(v.game_label || `P${postoId}`),
+          pin: String(v.pin || '')
+        }))
+        .sort((a, b) => compareGameIds(a.postoId, b.postoId));
     },
     subscribeSubmissions(cb) {
       return onValue(ref(db, 'submissions'), (snap) => cb(snap.exists() ? snap.val() : {}));
