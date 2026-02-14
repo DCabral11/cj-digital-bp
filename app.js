@@ -13,6 +13,7 @@ const DOM = {
   historyBody: document.getElementById('history-body'),
   logoutTeam: document.getElementById('logout-team'),
   logoutAdmin: document.getElementById('logout-admin'),
+  exportAdminXlsx: document.getElementById('export-admin-xlsx'),
   pinDialog: document.getElementById('pin-dialog'),
   pinForm: document.getElementById('pin-form'),
   pinInput: document.getElementById('pin-input'),
@@ -83,6 +84,28 @@ function renderAdmin() {
   DOM.historyBody.innerHTML = historyRows().map((h) =>
     `<tr><td>${new Date(h.timestamp).toLocaleString('pt-PT')}</td><td>${h.teamName}</td><td>${h.gameId}</td><td>${h.points}</td></tr>`
   ).join('');
+}
+
+function exportAdminDashboardToExcel() {
+  if (!window.XLSX) {
+    DOM.loginError.textContent = 'Biblioteca Excel não carregada.';
+    return;
+  }
+
+  const rankingData = rankingRows().map((r, idx) => ({ posicao: idx + 1, equipa: r.name, pontos: r.score }));
+  const historyData = historyRows().map((h) => ({
+    data_hora: new Date(h.timestamp).toLocaleString('pt-PT'),
+    equipa: h.teamName,
+    jogo: h.gameId,
+    pontos: h.points
+  }));
+
+  const wb = XLSX.utils.book_new();
+  const wsRanking = XLSX.utils.json_to_sheet(rankingData.length ? rankingData : [{ info: 'Sem dados de ranking' }]);
+  const wsHistory = XLSX.utils.json_to_sheet(historyData.length ? historyData : [{ info: 'Sem histórico de inserções' }]);
+  XLSX.utils.book_append_sheet(wb, wsRanking, 'ranking');
+  XLSX.utils.book_append_sheet(wb, wsHistory, 'historico');
+  XLSX.writeFile(wb, 'dashboard_admin.xlsx');
 }
 
 function openPinDialog(game) {
@@ -167,6 +190,7 @@ function bindEvents() {
   });
 
   DOM.logoutAdmin.addEventListener('click', logout);
+  DOM.exportAdminXlsx?.addEventListener('click', exportAdminDashboardToExcel);
   DOM.logoutTeam.addEventListener('click', logout);
   DOM.pinForm.addEventListener('submit', handlePinSubmit);
 }
