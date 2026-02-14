@@ -85,17 +85,20 @@
         </label>
         <label>
           Pontos obtidos
-          <input id="points-input" type="number" required min="0" max="1000" step="1" value="100" />
+          <select id="points-input" required>
+            <option value="0">0</option>
+            <option value="100" selected>100</option>
+          </select>
         </label>
         <menu>
-          <button id="cancel-pin" type="button" class="ghost">Cancelar</button>
+          <button id="cancel-pin" type="button" class="ghost cancel-btn">Cancelar</button>
           <button id="submit-pin" type="submit">Registar</button>
         </menu>
         <p id="pin-feedback" class="error"></p>
       </form>
     </dialog>
 
-    <script src="firebase-config.js?v=7"></script>
-    <script type="module" src="app.js?v=7"></script>
+    <script src="firebase-config.js?v=8"></script>
+    <script type="module" src="app.js?v=8"></script>
   </body>
 </html>
