@@ -16,12 +16,15 @@ const DOM = {
   pinDialog: document.getElementById('pin-dialog'),
   pinForm: document.getElementById('pin-form'),
   pinInput: document.getElementById('pin-input'),
+  pointsInput: document.getElementById('points-input'),
   pinFeedback: document.getElementById('pin-feedback'),
   dialogTitle: document.getElementById('dialog-title')
 };
 
 const state = { teams: [], games: [], submissions: {}, session: null, selectedGame: null, admin: null };
 let firebaseApi;
+
+const SESSION_KEY = 'peddy_session';
 
 const gameIdCollator = new Intl.Collator('pt', { numeric: true, sensitivity: 'base' });
 const compareGameIds = (left, right) => gameIdCollator.compare(String(left ?? ''), String(right ?? ''));
@@ -90,6 +93,7 @@ function openPinDialog(game) {
   state.selectedGame = game;
   DOM.dialogTitle.textContent = `Validar ${game.label}`;
   DOM.pinInput.value = '';
+  DOM.pointsInput.value = '';
   DOM.pinFeedback.textContent = '';
   DOM.pinDialog.showModal();
 }
@@ -101,10 +105,10 @@ async function handlePinSubmit(ev) {
   if (!game || !team) return;
   
   const enteredPin = DOM.pinInput.value.trim();
-  const points = await firebaseApi.validatePinAndInsertSubmission(team.id, game, enteredPin);
+  const enteredPoints = Number(DOM.pointsInput.value);
   
   try {
-    await firebaseApi.insertSubmission(team.id, game.gameId, { timestamp: new Date().toISOString(), points });
+    const points = const points = await firebaseApi.validatePinAndInsertSubmission(team.id, game, enteredPin, enteredPoints);
     DOM.pinFeedback.textContent = `Registo efetuado. ${points} pontos.`;
     setTimeout(() => DOM.pinDialog.close(), 450);
   } catch (err) {
@@ -121,6 +125,8 @@ function authenticate(username, password) {
 function logout() {
   state.session = null;
 
+  localStorage.removeItem(SESSION_KEY);
+  
   if (DOM.pinDialog.open) DOM.pinDialog.close();
   
   DOM.loginForm.reset();
@@ -138,6 +144,7 @@ function bindEvents() {
     }
     DOM.loginError.textContent = '';
     state.session = auth;
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ role: auth.role, teamId: auth.team?.id || null }));
     if (auth.role === 'admin') {
       switchView(DOM.adminView);
       renderAdmin();
@@ -206,7 +213,7 @@ async function createFirebaseApi() {
     subscribeSubmissions(cb) {
       return onValue(ref(db, 'submissions'), (snap) => cb(snap.exists() ? snap.val() : {}));
     },
-    async validatePinAndInsertSubmission(teamId, game, enteredPin) {
+    async validatePinAndInsertSubmission(teamId, game, enteredPin, enteredPoints) {
        const pinPath = `postos/${game.postoId}/pin`;
         const pinSnap = await get(ref(db, pinPath));
         
@@ -220,7 +227,8 @@ async function createFirebaseApi() {
         if (!isValidPin) {
           throw new Error('PIN incorreto. Verifica o código do posto.');
         }
-        
+
+        const points = Number(enteredPoints);
         const payload = { timestamp: new Date().toISOString(), points, gameId: game.gameId };
 
         const target = ref(db, `submissions/${teamId}/${game.gameId}`);
@@ -256,12 +264,34 @@ async function bootstrap() {
   });
 
   bindEvents();
+
+  const persisted = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+
+  if (persisted?.role === 'admin') {
+      state.session = { role: 'admin' };
+      switchView(DOM.adminView);
+      renderAdmin();
+      return;
+  }
+
+  if (persisted?.role === 'team' && persisted.teamId) {
+      const team = state.teams.find((t) => t.id === String(persisted.teamId));
+
+      if (team) {
+          state.session = { role: 'team', team };
+          switchView(DOM.teamView);
+          renderTeam();
+          return;
+      }
+  }
+  
   switchView(DOM.loginView);
 }
 
 bootstrap().catch((err) => {
   DOM.loginError.textContent = `Erro ao iniciar: ${err.message}`;
 });
+
 
 
 
