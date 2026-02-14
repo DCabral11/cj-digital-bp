@@ -88,3 +88,14 @@ menu { display: flex; justify-content: end; gap: .55rem; margin: .2rem 0 0; padd
 }
 
 #pin-dialog menu button { min-width: 120px; }
+
+
+.primary-export {
+  background: linear-gradient(120deg, #2563eb, #1d4ed8);
+  color: #eff6ff;
+  border: 1px solid rgba(191, 219, 254, .45);
+}
+
+.primary-export:hover {
+  filter: brightness(1.08);
+}
