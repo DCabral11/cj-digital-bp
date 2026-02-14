@@ -99,8 +99,10 @@ async function handlePinSubmit(ev) {
   const game = state.selectedGame;
   const team = state.session?.team;
   if (!game || !team) return;
-
-  const points = DOM.pinInput.value.trim() === game.pin ? 100 : 0;
+  
+  const enteredPin = DOM.pinInput.value.trim();
+  const points = await firebaseApi.validatePinAndInsertSubmission(team.id, game, enteredPin);
+  
   try {
     await firebaseApi.insertSubmission(team.id, game.gameId, { timestamp: new Date().toISOString(), points });
     DOM.pinFeedback.textContent = `Registo efetuado. ${points} pontos.`;
@@ -197,18 +199,30 @@ async function createFirebaseApi() {
         .map(([postoId, v]) => ({
           postoId: String(postoId),
           gameId: String(v.game_label || `P${postoId}`),
-          label: String(v.game_label || `P${postoId}`),
-          pin: String(v.pin || '')
+          label: String(v.game_label || `P${postoId}`)
         }))
         .sort((a, b) => compareGameIds(a.postoId, b.postoId));
     },
     subscribeSubmissions(cb) {
       return onValue(ref(db, 'submissions'), (snap) => cb(snap.exists() ? snap.val() : {}));
     },
-    async insertSubmission(teamId, gameId, payload) {
-      const target = ref(db, `submissions/${teamId}/${gameId}`);
-      const tx = await runTransaction(target, (current) => current || { ...payload, gameId });
-      if (!tx.committed) throw new Error('Jogo já registado para esta equipa.');
+    async validatePinAndInsertSubmission(teamId, game, enteredPin) {
+       const pinPath = `postos/${game.postoId}/pin`;
+        const pinSnap = await get(ref(db, pinPath));
+        
+        if (!pinSnap.exists()) {
+          throw new Error('PIN do posto não encontrado na base de dados.');
+        }
+
+        const dbPin = String(pinSnap.val() || '').trim();
+        const points = String(enteredPin || '').trim() === dbPin ? 100 : 0;
+        const payload = { timestamp: new Date().toISOString(), points, gameId: game.gameId };
+
+        const target = ref(db, `submissions/${teamId}/${game.gameId}`);
+        const tx = await runTransaction(target, (current) => current || payload);
+        if (!tx.committed) throw new Error('Jogo já registado para esta equipa.');
+
+        return points;
     }
   };
 
@@ -243,5 +257,6 @@ async function bootstrap() {
 bootstrap().catch((err) => {
   DOM.loginError.textContent = `Erro ao iniciar: ${err.message}`;
 });
+
 
 
