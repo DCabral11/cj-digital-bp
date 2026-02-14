@@ -28,12 +28,15 @@ const compareGameIds = (left, right) => gameIdCollator.compare(String(left ?? ''
 
 function switchView(view) {
   [DOM.loginView, DOM.teamView, DOM.adminView].forEach((v) => {
-        v.classList.remove('visible');
-        v.classList.remove('hidden');
-    });
+       const isTarget = v === view;
+       
+       v.classList.toggle('visible', isTarget);
+       v.classList.toggle('hidden', !isTarget);
 
-    view.classList.remove('hidden');
-    view.classList.add('visible');
+       v.hidden = !isTarget;
+
+       v.setAttribute("aria-hidden", String(!isTarget));
+    });
 }
 
 function computeTeamScore(teamId) {
@@ -115,6 +118,9 @@ function authenticate(username, password) {
 
 function logout() {
   state.session = null;
+
+  if (DOM.pinDialog.open) DOM.pinDialog.close();
+  
   DOM.loginForm.reset();
   DOM.loginError.textContent = '';
   switchView(DOM.loginView);
@@ -237,4 +243,5 @@ async function bootstrap() {
 bootstrap().catch((err) => {
   DOM.loginError.textContent = `Erro ao iniciar: ${err.message}`;
 });
+
 
