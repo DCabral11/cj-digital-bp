@@ -217,17 +217,27 @@ async function createFirebaseApi() {
     async getAdmin() {
       const [adminSnap, equipasSnap] = await Promise.all([get(ref(db, 'admin')), get(ref(db, 'equipas'))]);
       if (adminSnap.exists()) {
-        return adminSnap.val();
+        const adminValue = adminSnap.val();
+        if (adminValue && typeof adminValue === 'object' && adminValue.username && adminValue.password) {
+          return { username: String(adminValue.username), password: String(adminValue.password) };
+        }
+
+        if (adminValue && typeof adminValue === 'object') {
+          const nestedAdmin = Object.values(adminValue).find((row) => row && row.username && row.password);
+          if (nestedAdmin) {
+            return { username: String(nestedAdmin.username), password: String(nestedAdmin.password) };
+          }
+        }
       }
 
       if (equipasSnap.exists()) {
         const adminEntry = Object.values(equipasSnap.val()).find((row) => String(row?.role || '').toLowerCase() === 'admin');
         if (adminEntry) {
-          return { username: adminEntry.username, password: adminEntry.password };
+          return { username: String(adminEntry.username), password: String(adminEntry.password) };
         }
       }
 
-      throw new Error('Nó /admin não existe e não foi encontrado utilizador admin em /equipas.');
+      throw new Error('Credenciais de admin não encontradas em /admin nem em /equipas(role=admin).');
     },
     async getTeams() {
       const snap = await get(ref(db, 'equipas'));
