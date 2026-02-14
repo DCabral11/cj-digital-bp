@@ -12,7 +12,7 @@
   <body>
     <div class="bg-gradient"></div>
     <main class="app-shell">
-      <section id="login-view" class="card visible">
+      <section id="login-view" class="card visible" aria-hidden="false">
         <h1>Jogo de Cidade - Dia de BP Alverca 2026</h1>
         <form id="login-form" class="form-grid">
           <label>
@@ -28,7 +28,7 @@
         <p id="login-error" class="error"></p>
       </section>
 
-      <section id="team-view" class="card hidden">
+      <section id="team-view" class="card hidden" hidden aria-hidden="true">
         <header class="view-header">
           <div>
             <h2 id="team-name">Equipa</h2>
@@ -41,7 +41,7 @@
         <div id="games-grid" class="games-grid"></div>
       </section>
 
-      <section id="admin-view" class="card hidden">
+      <section id="admin-view" class="card hidden" hidden aria-hidden="false">
         <header class="view-header">
           <h2>Painel de Administrador</h2>
           <button id="logout-admin" class="ghost">Terminar sessão</button>
