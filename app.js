@@ -215,7 +215,12 @@ async function createFirebaseApi() {
         }
 
         const dbPin = String(pinSnap.val() || '').trim();
-        const points = String(enteredPin || '').trim() === dbPin ? 100 : 0;
+        const isValidPin = String(enteredPin || '').trim() === dbPin;
+
+        if (!isValidPin) {
+          throw new Error('PIN incorreto. Verifica o código do posto.');
+        }
+        
         const payload = { timestamp: new Date().toISOString(), points, gameId: game.gameId };
 
         const target = ref(db, `submissions/${teamId}/${game.gameId}`);
@@ -257,6 +262,7 @@ async function bootstrap() {
 bootstrap().catch((err) => {
   DOM.loginError.textContent = `Erro ao iniciar: ${err.message}`;
 });
+
 
 
 
