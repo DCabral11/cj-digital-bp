@@ -3,20 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dia de BP 2026 - Cartão de Jogo</title>
+    <title>Jogo de Cidade | Peddy-Paper</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
-    <link rel="icon" type="image/x-icon" href="/favicon-32x32.png">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   </head>
   <body>
     <div class="bg-gradient"></div>
     <main class="app-shell">
       <section id="login-view" class="card visible" aria-hidden="false">
-        <h1>Jogo de Cidade Digital</h1>
-        <p class="subtitle">Inicia Sessão com as credenciais que vos foram dadas no Posto Central</p>
+        <h1>Jogo de Cidade</h1>
+        <p class="subtitle">Plataforma Peddy-Paper com ranking em tempo real</p>
         <form id="login-form" class="form-grid">
           <label>
             Username
@@ -35,14 +34,24 @@
         <header class="view-header">
           <div>
             <h2 id="team-name">Equipa</h2>
-            <p id="team-score" class="score-pill">Pontuação em Tempo Real: 0</p>
+            <p id="team-score" class="score-pill">Pontuação: 0</p>
           </div>
           <button id="logout-team" class="ghost">Terminar sessão</button>
         </header>
-        <h3>Postos do Jogo</h3>
-        <p class="subtitle">Clica no jogo em que te encontras.</p>
-        <p class="subtitle">Verde = por jogar • Vermelho = jogado (não podes voltar)</p>
+        <h3>Postos do jogo</h3>
+        <p class="subtitle">Verde = por visitar • Vermelho = visitado</p>
         <div id="games-grid" class="games-grid"></div>
+
+        <article class="card access-card">
+          <h3>Registo de acessos da tua conta</h3>
+          <p class="subtitle" id="device-summary">A carregar registo de acessos...</p>
+          <table>
+            <thead>
+              <tr><th>Data/Hora</th><th>Dispositivo</th><th>Detalhe</th></tr>
+            </thead>
+            <tbody id="access-body"></tbody>
+          </table>
+        </article>
       </section>
 
       <section id="admin-view" class="card hidden" hidden aria-hidden="true">
@@ -80,13 +89,13 @@
 
     <dialog id="pin-dialog">
       <form id="pin-form" class="form-grid">
-        <h3 id="dialog-title">Validar Posto</h3>
+        <h3 id="dialog-title">Validar posto</h3>
         <label>
           PIN do posto
           <input id="pin-input" type="password" required maxlength="8" autocomplete="off" />
         </label>
         <label>
-          Pontos do Jogo (0 ou 100)
+          Pontos obtidos
           <select id="points-input" required>
             <option value="0">0</option>
             <option value="100" selected>100</option>
@@ -94,18 +103,13 @@
         </label>
         <menu>
           <button id="cancel-pin" type="button" class="ghost cancel-btn">Cancelar</button>
-          <button id="submit-pin" type="submit">Submeter</button>
+          <button id="submit-pin" type="submit">Registar</button>
         </menu>
         <p id="pin-feedback" class="error"></p>
       </form>
     </dialog>
 
-    <script src="firebase-config.js?v=10"></script>
-    <script type="module" src="app.js?v=10"></script>
+    <script src="firebase-config.js?v=12"></script>
+    <script type="module" src="app.js?v=12"></script>
   </body>
 </html>
-
-
-
-
-
