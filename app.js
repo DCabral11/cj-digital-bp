@@ -89,31 +89,41 @@ function normalizeAccessLogs(data) {
   })).filter((row) => row.teamId && row.timestamp);
 }
 
-function renderTeamAccesses(teamId) {
+function renderAdminAccesses() {
   if (!DOM.accessBody || !DOM.deviceSummary) return;
-  const rows = state.accesses
-    .filter((r) => String(r.teamId) === String(teamId))
-    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-  const uniqueDevices = new Set(rows.map((r) => r.deviceId)).size;
+  const rows = [...state.accesses].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  const uniqueByTeam = new Map();
+  for (const row of rows) {
+    const key = String(row.teamId);
+    if (!uniqueByTeam.has(key)) uniqueByTeam.set(key, new Set());
+    uniqueByTeam.get(key).add(String(row.deviceId));
+  }
+  const teamsWithMultiDevice = [...uniqueByTeam.values()].filter((set) => set.size > 1).length;
+
   if (rows.length === 0) {
-    DOM.deviceSummary.textContent = 'Sem registos de acesso para esta conta.';
-    DOM.accessBody.innerHTML = '<tr><td colspan="3">Sem registos.</td></tr>';
+    DOM.deviceSummary.textContent = 'Sem registos de acesso.';
+    DOM.accessBody.innerHTML = '<tr><td colspan="4">Sem registos.</td></tr>';
     return;
   }
 
-  DOM.deviceSummary.textContent = uniqueDevices > 1
-    ? `⚠️ Conta usada em ${uniqueDevices} dispositivos diferentes.`
-    : 'Conta usada num único dispositivo.';
+  DOM.deviceSummary.textContent = teamsWithMultiDevice > 0
+    ? `⚠️ ${teamsWithMultiDevice} conta(s) com acessos em múltiplos dispositivos.`
+    : 'Sem evidência de multi-dispositivo nas contas.';
 
-  DOM.accessBody.innerHTML = rows.map((r) => `
-    <tr>
-      <td>${new Date(r.timestamp).toLocaleString('pt-PT')}</td>
-      <td>${r.deviceId}</td>
-      <td>${r.ua.slice(0, 80)}</td>
-    </tr>
-  `).join('');
+  DOM.accessBody.innerHTML = rows.map((r) => {
+    const team = state.teams.find((t) => String(t.id) === String(r.teamId));
+    return `
+      <tr>
+        <td>${new Date(r.timestamp).toLocaleString('pt-PT')}</td>
+        <td>${team?.teamName || r.teamId}</td>
+        <td>${r.deviceId}</td>
+        <td>${r.ua.slice(0, 80)}</td>
+      </tr>
+    `;
+  }).join('');
 }
+
 
 function switchView(view) {
   [DOM.loginView, DOM.teamView, DOM.adminView].forEach((v) => {
@@ -170,7 +180,6 @@ function renderTeam() {
     DOM.gamesGrid.appendChild(tile);
   });
 
-  renderTeamAccesses(team.id);
 }
 
 function renderAdmin() {
@@ -178,6 +187,7 @@ function renderAdmin() {
   DOM.historyBody.innerHTML = historyRows().map((h) =>
     `<tr><td>${new Date(h.timestamp).toLocaleString('pt-PT')}</td><td>${h.teamName}</td><td>${h.gameId}</td><td>${h.points}</td></tr>`
   ).join('');
+  renderAdminAccesses();
 }
 
 function exportAdminDashboardToExcel() {
@@ -440,7 +450,7 @@ async function bootstrap() {
   if (typeof accessSub === 'function') {
     accessSub.call(firebaseApi, (accesses) => {
       state.accesses = accesses;
-      if (state.session?.role === 'team') renderTeam();
+      if (state.session?.role === 'admin') renderAdmin();
     });
   }
 
