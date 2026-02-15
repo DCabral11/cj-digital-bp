@@ -9,6 +9,8 @@ const DOM = {
   teamName: document.getElementById('team-name'),
   teamScore: document.getElementById('team-score'),
   gamesGrid: document.getElementById('games-grid'),
+  accessBody: document.getElementById('access-body'),
+  deviceSummary: document.getElementById('device-summary'),
   rankingBody: document.getElementById('ranking-body'),
   historyBody: document.getElementById('history-body'),
   logoutTeam: document.getElementById('logout-team'),
@@ -23,9 +25,10 @@ const DOM = {
   dialogTitle: document.getElementById('dialog-title')
 };
 
-const state = { teams: [], games: [], submissions: [], session: null, selectedGame: null, admin: null, ready: false, bootstrapError: null, eventsBound: false };
+const state = { teams: [], games: [], submissions: [], accesses: [], session: null, selectedGame: null, admin: null, ready: false, bootstrapError: null, eventsBound: false };
 let firebaseApi;
 const SESSION_KEY = 'peddy_session';
+const DEVICE_KEY = 'peddy_device_id';
 
 const gameIdCollator = new Intl.Collator('pt', { numeric: true, sensitivity: 'base' });
 const compareGameIds = (left, right) => gameIdCollator.compare(String(left ?? ''), String(right ?? ''));
@@ -64,6 +67,53 @@ function normalizeSubmissions(data) {
   return rows;
 }
 
+
+
+
+function getOrCreateDeviceId() {
+  const existing = localStorage.getItem(DEVICE_KEY);
+  if (existing) return existing;
+  const generated = `D${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  localStorage.setItem(DEVICE_KEY, generated);
+  return generated;
+}
+
+function normalizeAccessLogs(data) {
+  if (!data) return [];
+  return Object.entries(data).map(([id, row]) => ({
+    id: String(id),
+    teamId: String(row?.teamId || row?.equipa || ''),
+    timestamp: String(row?.timestamp || ''),
+    deviceId: String(row?.deviceId || ''),
+    ua: String(row?.ua || '')
+  })).filter((row) => row.teamId && row.timestamp);
+}
+
+function renderTeamAccesses(teamId) {
+  if (!DOM.accessBody || !DOM.deviceSummary) return;
+  const rows = state.accesses
+    .filter((r) => String(r.teamId) === String(teamId))
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  const uniqueDevices = new Set(rows.map((r) => r.deviceId)).size;
+  if (rows.length === 0) {
+    DOM.deviceSummary.textContent = 'Sem registos de acesso para esta conta.';
+    DOM.accessBody.innerHTML = '<tr><td colspan="3">Sem registos.</td></tr>';
+    return;
+  }
+
+  DOM.deviceSummary.textContent = uniqueDevices > 1
+    ? `⚠️ Conta usada em ${uniqueDevices} dispositivos diferentes.`
+    : 'Conta usada num único dispositivo.';
+
+  DOM.accessBody.innerHTML = rows.map((r) => `
+    <tr>
+      <td>${new Date(r.timestamp).toLocaleString('pt-PT')}</td>
+      <td>${r.deviceId}</td>
+      <td>${r.ua.slice(0, 80)}</td>
+    </tr>
+  `).join('');
+}
 
 function switchView(view) {
   [DOM.loginView, DOM.teamView, DOM.adminView].forEach((v) => {
@@ -119,6 +169,8 @@ function renderTeam() {
     tile.addEventListener('click', () => openPinDialog(game));
     DOM.gamesGrid.appendChild(tile);
   });
+
+  renderTeamAccesses(team.id);
 }
 
 function renderAdmin() {
@@ -226,6 +278,7 @@ function bindEvents() {
       switchView(DOM.adminView);
       renderAdmin();
     } else {
+      firebaseApi?.registerAccess(auth.team.id, getOrCreateDeviceId(), navigator.userAgent);
       switchView(DOM.teamView);
       renderTeam();
     }
@@ -307,6 +360,20 @@ async function createFirebaseApi() {
     subscribeSubmissions(cb) {
       return onValue(ref(db, 'submissions'), (snap) => cb(normalizeSubmissions(snap.exists() ? snap.val() : {})));
     },
+    subscribeAccesses(cb) {
+      return onValue(ref(db, 'access_logs'), (snap) => cb(normalizeAccessLogs(snap.exists() ? snap.val() : {})));
+    },
+    async registerAccess(teamId, deviceId, ua) {
+      const id = `A${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      const payload = {
+        teamId: String(teamId),
+        timestamp: new Date().toISOString(),
+        deviceId: String(deviceId),
+        ua: String(ua || '')
+      };
+      const target = ref(db, `access_logs/${id}`);
+      await runTransaction(target, (current) => current || payload);
+    },
     async validatePinAndInsertSubmission(teamId, game, enteredPin, enteredPoints) {
       const pinPath = `postos/${game.postoId}/pin`;
       const pinSnap = await get(ref(db, pinPath));
@@ -368,6 +435,14 @@ async function bootstrap() {
     if (state.session?.role === 'team') renderTeam();
     if (state.session?.role === 'admin') renderAdmin();
   });
+
+  const accessSub = firebaseApi.subscribeAccesses || firebaseApi.subscribeAccessLog || firebaseApi.subscribeAccess;
+  if (typeof accessSub === 'function') {
+    accessSub.call(firebaseApi, (accesses) => {
+      state.accesses = accesses;
+      if (state.session?.role === 'team') renderTeam();
+    });
+  }
 
   bindEvents();
 
