@@ -41,17 +41,6 @@
         <h3>Postos do jogo</h3>
         <p class="subtitle">Verde = por visitar • Vermelho = visitado</p>
         <div id="games-grid" class="games-grid"></div>
-
-        <article class="card access-card">
-          <h3>Registo de acessos da tua conta</h3>
-          <p class="subtitle" id="device-summary">A carregar registo de acessos...</p>
-          <table>
-            <thead>
-              <tr><th>Data/Hora</th><th>Dispositivo</th><th>Detalhe</th></tr>
-            </thead>
-            <tbody id="access-body"></tbody>
-          </table>
-        </article>
       </section>
 
       <section id="admin-view" class="card hidden" hidden aria-hidden="true">
@@ -83,7 +72,19 @@
               <tbody id="history-body"></tbody>
             </table>
           </article>
+
         </div>
+
+        <article class="access-card">
+          <h3>Registo de acessos das contas</h3>
+          <p class="subtitle" id="device-summary">A carregar registo de acessos...</p>
+          <table>
+            <thead>
+              <tr><th>Data/Hora</th><th>Equipa</th><th>Dispositivo</th><th>Detalhe</th></tr>
+            </thead>
+            <tbody id="access-body"></tbody>
+          </table>
+        </article>
       </section>
     </main>
 
@@ -109,7 +110,7 @@
       </form>
     </dialog>
 
-    <script src="firebase-config.js?v=12"></script>
-    <script type="module" src="app.js?v=12"></script>
+    <script src="firebase-config.js?v=14"></script>
+    <script type="module" src="app.js?v=14"></script>
   </body>
 </html>
