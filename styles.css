@@ -99,3 +99,7 @@ menu { display: flex; justify-content: end; gap: .55rem; margin: .2rem 0 0; padd
 .primary-export:hover {
   filter: brightness(1.08);
 }
+
+
+.access-card { margin-top: 1rem; }
+#device-summary { margin-bottom: .6rem; }
