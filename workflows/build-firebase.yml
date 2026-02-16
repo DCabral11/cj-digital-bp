@@ -23,7 +23,7 @@ jobs:
               -e "s|__MESSAGING_SENDER_ID__|${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}|g" \
               -e "s|__APP_ID__|${{ secrets.FIREBASE_APP_ID }}|g" \
               -e "s|__MEASUREMENT_ID__|${{ secrets.FIREBASE_MEASUREMENT_ID }}|g" \
-              firebase-config.js > firebase.js
+              firebase-config.js > firebase-config.js
 
       # 3. (Optional) Deploy or build your project
       - name: Show generated config (for verification)
