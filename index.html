@@ -125,10 +125,15 @@
         }
 
         loadScript('.env/firebase-config.js?v=18')
+          .then(function () {
+            if (window.FIREBASE_CONFIG) return null;
+            return loadScript('firebase-config.js?v=18');
+          })
           .catch(function () {
-            return loadScript('.env/firebase-config.js?v=18');
+            return loadScript('firebase-config.js?v=18');
           })
           .then(function () {
+            if (!window.FIREBASE_CONFIG) throw new Error('missing-firebase-config');
             return loadScript('app.js?v=18', 'module');
           })
           .catch(function () {
@@ -137,9 +142,11 @@
               loginError.textContent = 'Erro ao iniciar: ficheiro de configuração Firebase não encontrado.';
             }
           });
+      })();
     </script>
   </body>
 </html>
+
 
 
 
