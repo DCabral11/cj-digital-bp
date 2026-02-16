@@ -307,7 +307,7 @@ function bindEvents() {
 }
 
 async function createFirebaseApi() {
-  if (!window.FIREBASE_CONFIG) throw new Error('firebase-config.js não encontrado/configurado.');
+  if (!window.FIREBASE_CONFIG) throw new Error('.env/firebase-config.js não encontrado/configurado.');
 
   const [{ initializeApp }, { getDatabase, ref, get, onValue, runTransaction }] = await Promise.all([
     import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js'),
@@ -479,3 +479,4 @@ bootstrap().catch((err) => {
   state.bootstrapError = err;
   DOM.loginError.textContent = `Erro ao iniciar: ${err.message}`;
 });
+
