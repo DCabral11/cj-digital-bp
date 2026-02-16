@@ -1,10 +1,10 @@
 window.FIREBASE_CONFIG = {
-    apiKey: import.meta.env.FIREBASE_API_KEY,
-    authDomain: import.meta.env.FIREBASE_AUTH_DOMAIN,
-    databaseURL: import.meta.env.FIREBASE_DATABASE_URL,
-    projectId: import.meta.env.FIREBASE_PROJECT_ID,
-    storageBucket: import.meta.env.FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: import.meta.env.FIREBASE_MESSAGING_SENDER_ID,
-    appId: import.meta.env.FIREBASE_APP_ID,
-    measurementId: import.meta.env.FIREBASE_MEASUREMENT_ID
+  apiKey: "__API_KEY__",
+  authDomain: "__AUTH_DOMAIN__",
+  databaseURL: "__DATABASE_URL__",
+  projectId: "__PROJECT_ID__",
+  storageBucket: "__STORAGE_BUCKET__",
+  messagingSenderId: "__MESSAGING_SENDER_ID__",
+  appId: "__APP_ID__",
+  measurementId: "__MEASUREMENT_ID__"
 };
