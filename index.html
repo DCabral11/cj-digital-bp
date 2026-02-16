@@ -111,41 +111,11 @@
       </form>
     </dialog>
 
-    <script>
-      (function bootstrapApp() {
-        function loadScript(src, type) {
-          return new Promise(function (resolve, reject) {
-            var script = document.createElement('script');
-            if (type) script.type = type;
-            script.src = src;
-            script.onload = resolve;
-            script.onerror = reject;
-            document.head.appendChild(script);
-          });
-        }
-
-        loadScript('.env/firebase-config.js?v=18')
-          .then(function () {
-            if (window.FIREBASE_CONFIG) return null;
-            return loadScript('firebase-config.js?v=18');
-          })
-          .catch(function () {
-            return loadScript('firebase-config.js?v=18');
-          })
-          .then(function () {
-            if (!window.FIREBASE_CONFIG) throw new Error('missing-firebase-config');
-            return loadScript('app.js?v=18', 'module');
-          })
-          .catch(function () {
-            var loginError = document.getElementById('login-error');
-            if (loginError) {
-              loginError.textContent = 'Erro ao iniciar: ficheiro de configuração Firebase não encontrado.';
-            }
-          });
-      })();
-    </script>
+    <script src="env/firebase-config.js?v=19"></script>
+    <script type="module" src="app.js?v=19"></script>
   </body>
 </html>
+
 
 
 
