@@ -112,15 +112,35 @@
     </dialog>
 
     <script>
-      (function loadFirebaseConfig() {
-        var script = document.createElement('script');
-        script.src = '.env/firebase-config.js?v=16';
-        document.head.appendChild(script);
-      })();
+      (function bootstrapApp() {
+        function loadScript(src, type) {
+          return new Promise(function (resolve, reject) {
+            var script = document.createElement('script');
+            if (type) script.type = type;
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+        }
+
+        loadScript('.env/firebase-config.js?v=17')
+          .catch(function () {
+            return loadScript('firebase-config.js?v=17');
+          })
+          .then(function () {
+            return loadScript('app.js?v=17', 'module');
+          })
+          .catch(function () {
+            var loginError = document.getElementById('login-error');
+            if (loginError) {
+              loginError.textContent = 'Erro ao iniciar: ficheiro de configuração Firebase não encontrado.';
+            }
+          });
     </script>
-    <script type="module" src="app.js?v=14"></script>
   </body>
 </html>
+
 
 
 
