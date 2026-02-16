@@ -111,10 +111,17 @@
       </form>
     </dialog>
 
-    <script src=".env/firebase-config.js?v=15"></script>
+    <script>
+      (function loadFirebaseConfig() {
+        var script = document.createElement('script');
+        script.src = '.env/firebase-config.js?v=16';
+        document.head.appendChild(script);
+      })();
+    </script>
     <script type="module" src="app.js?v=14"></script>
   </body>
 </html>
+
 
 
 
