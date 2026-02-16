@@ -124,12 +124,12 @@
           });
         }
 
-        loadScript('.env/firebase-config.js?v=17')
+        loadScript('.env/firebase-config.js?v=18')
           .catch(function () {
-            return loadScript('firebase-config.js?v=17');
+            return loadScript('.env/firebase-config.js?v=18');
           })
           .then(function () {
-            return loadScript('app.js?v=17', 'module');
+            return loadScript('app.js?v=18', 'module');
           })
           .catch(function () {
             var loginError = document.getElementById('login-error');
@@ -140,6 +140,7 @@
     </script>
   </body>
 </html>
+
 
 
 
